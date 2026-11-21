@@ -1,0 +1,64 @@
+{% extends "painel/base.html" %}
+{% load painel_extras %}
+{% block title %}Ficha {{ ocorrencia.numero_nota|nota_br }}{% endblock %}
+{% block content %}
+<article class="folha ficha">
+  {% include "painel/includes/ficha_corpo.html" %}
+
+  <section class="no-print complemento-caixa">
+    <h2>Acrescentar informação</h2>
+    <p class="dica">
+      Qualquer pessoa da equipe pode complementar. Isso não altera autor, data, produtos nem a descrição original.
+      {% if encerrada %}Se a ocorrência estiver encerrada, o complemento a reabre e ela volta ao painel do dia.{% endif %}
+    </p>
+    <form method="post" action="{% url 'ocorrencia_complemento' ocorrencia.pk %}">
+      {% csrf_token %}
+      <label class="field">
+        <span>{{ form_complemento.texto.label }}</span>
+        {{ form_complemento.texto }}
+      </label>
+      <button class="botao" type="submit">{% if encerrada %}Complementar e reabrir{% else %}Registrar complemento{% endif %}</button>
+    </form>
+    {% if encerrada %}
+    <form method="post" action="{% url 'ocorrencia_reabrir' ocorrencia.pk %}" class="reabrir-form">
+      {% csrf_token %}
+      <button class="botao botao-secundario" type="submit">Só reabrir, sem texto</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="no-print status-caixa">
+    <h2>Status</h2>
+    <p class="dica">Quem está na equipe pode atualizar o status, inclusive o de ocorrências lançadas por outra pessoa.</p>
+    <form method="post" action="{% url 'ocorrencia_status' ocorrencia.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <select class="input status-select" name="status" style="--status-cor: {{ ocorrencia.status.cor_destaque }}">
+        {% for status in status_choices %}
+        <option value="{{ status.id }}" data-cor="{{ status.cor_destaque }}" {% if ocorrencia.status_id == status.id %}selected{% endif %}>{{ status.nome }}</option>
+        {% endfor %}
+      </select>
+      <button class="botao" type="submit">Atualizar status</button>
+    </form>
+    {% if not pode_editar %}
+    <p class="dica">Os demais campos ficam com {{ ocorrencia.criado_por.nome_curto }}, que lançou este registro.</p>
+    {% endif %}
+    {% if pode_excluir %}
+    <form method="post" action="{% url 'ocorrencia_excluir' ocorrencia.pk %}" onsubmit="return confirm('Excluir esta ocorrência? A auditoria guardou o que havia nela.');">
+      {% csrf_token %}
+      <button class="botao botao-perigo" type="submit">Excluir registro</button>
+    </form>
+    {% endif %}
+  </section>
+</article>
+{% if request.GET.print == "1" %}
+<script>
+window.addEventListener("load", () => {
+  window.print();
+  window.addEventListener("afterprint", () => {
+    if (window.opener) window.close();
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

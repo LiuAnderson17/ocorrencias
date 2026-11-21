@@ -1,0 +1,7 @@
+{% load painel_extras %}
+<nav class="abas no-print" aria-label="Tipos de relatório">
+  <a href="{% url 'relatorios' %}?{% querystring page='' print='' %}" {% if relatorio_atual == "lista" %}class="ativo"{% endif %}>Lista</a>
+  <a href="{% url 'relatorio_setores' %}?{% querystring page='' print='' %}" {% if relatorio_atual == "setores" %}class="ativo"{% endif %}>Por setor</a>
+  <a href="{% url 'relatorio_placas' %}?{% querystring page='' print='' %}" {% if relatorio_atual == "placas" %}class="ativo"{% endif %}>Por placa</a>
+  <a href="{% url 'relatorio_motivos' %}?{% querystring page='' print='' %}" {% if relatorio_atual == "motivos" %}class="ativo"{% endif %}>Por motivo</a>
+</nav>

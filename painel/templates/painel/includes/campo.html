@@ -1,0 +1,5 @@
+<label class="field">
+  <span>{{ campo.label }}</span>
+  {{ campo }}
+  {% if campo.errors %}<small class="erro">{{ campo.errors|striptags }}</small>{% endif %}
+</label>

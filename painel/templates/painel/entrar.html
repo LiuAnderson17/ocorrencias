@@ -1,0 +1,31 @@
+{% extends "painel/base.html" %}
+{% block title %}Entrar · Ocorrências{% endblock %}
+{% block body_class %}login{% endblock %}
+{% block body %}
+<main class="login-tela">
+  <section class="login-capa">
+    <p class="marca-selo">OC</p>
+    <h1>Ocorrências da operação, no grupo certo.</h1>
+    <p>Cada pessoa vê as devoluções das equipes em que participa. Só edita o que lançou. O status, a equipe acompanha junto.</p>
+  </section>
+  <section class="login-caixa">
+    <h2>Entrar</h2>
+    <form method="post">
+      {% csrf_token %}
+      {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+      {% if form.non_field_errors %}
+      <p class="erro-bloco">{{ form.non_field_errors|striptags }}</p>
+      {% endif %}
+      <label class="field">
+        <span>Usuário</span>
+        {{ form.username }}
+      </label>
+      <label class="field">
+        <span>Senha</span>
+        {{ form.password }}
+      </label>
+      <button class="botao" type="submit">Acessar o painel</button>
+    </form>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,22 @@
+<form class="busca{% if so_tela %} no-print{% endif %}" method="get" role="search">
+  {% if preservar_status and request.GET.status %}
+  <input type="hidden" name="status" value="{{ request.GET.status }}">
+  {% endif %}
+  <input
+    class="input busca-q"
+    type="search"
+    name="q"
+    value="{{ request.GET.q }}"
+    placeholder="Cliente, nota, motivo, placa, equipe, status, autor…"
+    aria-label="Buscar"
+  >
+  <label class="busca-data">
+    Início
+    <input class="input" type="date" name="de" value="{{ filtro_de }}">
+  </label>
+  <label class="busca-data">
+    Final
+    <input class="input" type="date" name="ate" value="{{ filtro_ate }}">
+  </label>
+  <button class="botao botao-secundario" type="submit">Buscar</button>
+</form>

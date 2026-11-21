@@ -1,0 +1,10 @@
+{% extends "painel/base.html" %}
+{% block title %}Sem acesso · Ocorrências{% endblock %}
+{% block content %}
+<section class="folha estreita">
+  <p class="olho">Acesso</p>
+  <h1>Esta parte não está na sua conta.</h1>
+  <p class="lead">{{ mensagem }}</p>
+  <a class="botao" href="{% url 'painel' %}">Voltar ao painel</a>
+</section>
+{% endblock %}

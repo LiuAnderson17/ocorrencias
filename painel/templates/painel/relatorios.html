@@ -1,0 +1,68 @@
+{% extends "painel/base.html" %}
+{% load painel_extras static %}
+{% block title %}Relatório · Ocorrências{% endblock %}
+{% block content %}
+<header class="topo">
+  <div>
+    <p class="olho">Relatório</p>
+    <h1>Tabela de ocorrências</h1>
+    <p class="lead">{{ resumo_filtros }}. As datas são do lançamento original. Peso e valor são dos produtos devolvidos; na devolução total entra a nota inteira.</p>
+  </div>
+  <a class="botao no-print" href="?{{ request.GET.urlencode }}{% if request.GET %}&{% endif %}print=1">Imprimir tabela</a>
+</header>
+
+{% include "painel/includes/abas_relatorio.html" %}
+{% include "painel/includes/busca.html" with so_tela=True %}
+
+<p class="so-print">Emitido em {% now "d/m/Y H:i" %} · {{ resumo_filtros }}</p>
+
+<div class="tabela-wrap">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Quando</th>
+        <th>Nota</th>
+        <th>Cliente</th>
+        <th>Equipe</th>
+        <th>Placa</th>
+        <th>Motivo</th>
+        <th>Tipo</th>
+        <th>Setor</th>
+        <th>Peso</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th class="no-print">Ficha</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in pagina|default:ocorrencias %}
+      <tr>
+        <td>{{ item.data_hora|date:"d/m/Y H:i" }}</td>
+        <td>{{ item.numero_nota|nota_br }}</td>
+        <td>{{ item.cliente }}</td>
+        <td>{{ item.equipe.nome }}</td>
+        <td>{% if item.placa %}{{ item.placa }}{% else %}—{% endif %}</td>
+        <td>{{ item.motivo.nome }}</td>
+        <td>{{ item.get_tipo_devolucao_display }}</td>
+        <td>{{ item.get_setor_display }}</td>
+        <td>{{ item.peso_relatorio|peso_br }}</td>
+        <td>{{ item.valor_relatorio|moeda }}</td>
+        <td><strong class="status-texto" style="color: {{ item.status.cor_destaque }}">{{ item.get_status_display }}</strong></td>
+        <td class="no-print">
+          <a class="imprime-ficha" href="{% url 'ocorrencia_imprimir' item.pk %}" target="ficha-impressao" data-imprimir-ficha="{% url 'ocorrencia_imprimir' item.pk %}">Imprimir</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="12" class="vazio">Nada para imprimir com estes filtros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "painel/includes/paginas.html" %}
+{% if request.GET.print == "1" %}
+<script>window.addEventListener("load", () => window.print());</script>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'painel/imprimir-ficha.js' %}"></script>
+{% endblock %}

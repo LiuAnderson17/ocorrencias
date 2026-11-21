@@ -1,0 +1,73 @@
+{% extends "painel/base.html" %}
+{% load painel_extras %}
+{% block title %}Auditoria · Ocorrências{% endblock %}
+{% block content %}
+<header class="topo">
+  <div>
+    <p class="olho">Auditoria</p>
+    <h1>Quem mexeu em quê</h1>
+    <p class="lead">Visível para o gerente da equipe e para quem tem acesso total.</p>
+  </div>
+</header>
+
+<form class="filtros" method="get">
+  <input class="input" type="search" name="q" value="{{ request.GET.q }}" placeholder="Buscar no resumo">
+  <select class="input" name="equipe">
+    <option value="">Todas as equipes</option>
+    {% for equipe in equipes %}
+    <option value="{{ equipe.id }}" {% if request.GET.equipe == equipe.id|stringformat:"s" %}selected{% endif %}>{{ equipe.nome }}</option>
+    {% endfor %}
+  </select>
+  <button class="botao botao-secundario" type="submit">Filtrar</button>
+</form>
+
+<ol class="trilha">
+  {% for item in pagina %}
+  <li>
+    <div>
+      <span class="selo selo-acao">{{ item.get_acao_display }}</span>
+      <time>{{ item.criado_em|date:"d/m/Y H:i" }}</time>
+    </div>
+    <p>{{ item.resumo }}</p>
+    <small>{{ item.usuario.nome_curto }}{% if item.equipe %} · {{ item.equipe.nome }}{% endif %} · registro {{ item.referencia }}</small>
+    {% if item.detalhes.alteracoes or item.detalhes.snapshot or item.detalhes.produtos_depois %}
+    <details>
+      <summary>Detalhe</summary>
+      {% if item.detalhes.alteracoes %}
+      <ul>
+        {% for alt in item.detalhes.alteracoes %}
+        <li>{{ alt.campo }}: {{ alt.de }} → {{ alt.para }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if item.detalhes.produtos_antes %}
+      <p>Produtos antes: {{ item.detalhes.produtos_antes|join:", " }}</p>
+      <p>Produtos depois: {{ item.detalhes.produtos_depois|join:", " }}</p>
+      {% endif %}
+      {% if item.detalhes.snapshot %}
+      <ul>
+        {% for chave, valor in item.detalhes.snapshot.items %}
+        <li>{{ chave }}: {% if chave == "produtos" %}{{ valor|join:"; " }}{% elif valor %}{{ valor }}{% else %}—{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </details>
+    {% endif %}
+  </li>
+  {% empty %}
+  <li class="vazio">Nenhum registro de auditoria nesta visão.</li>
+  {% endfor %}
+</ol>
+
+{% if pagina.paginator.num_pages > 1 %}
+<nav class="paginas">
+  {% if pagina.has_previous %}
+  <a href="?{% querystring page=pagina.previous_page_number %}">Anterior</a>
+  {% endif %}
+  <span>{{ pagina.number }} / {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}
+  <a href="?{% querystring page=pagina.next_page_number %}">Próxima</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

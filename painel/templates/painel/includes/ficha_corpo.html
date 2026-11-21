@@ -1,0 +1,128 @@
+{% load painel_extras %}
+<header class="ficha-cabeca">
+  <div>
+    <p class="olho">{% if ficha_relatorio %}Relatório · {% endif %}Ficha de ocorrência · {{ ocorrencia.equipe.nome }}</p>
+    <h1>{{ ocorrencia.cliente }}</h1>
+    <p class="ficha-sub">
+      NF {{ ocorrencia.numero_nota|nota_br }}
+      · Lançada em {{ ocorrencia.data_hora|date:"d/m/Y H:i" }}
+      · <strong class="status-texto" style="color: {{ ocorrencia.status.cor_destaque }}">{{ ocorrencia.get_status_display }}</strong>
+      {% if ocorrencia.complementos.all %}
+      <span class="selo-complemento">{{ ocorrencia.complementos.all|length }} complemento{{ ocorrencia.complementos.all|length|pluralize }}</span>
+      {% endif %}
+    </p>
+  </div>
+  {% if not ficha_relatorio %}
+  <div class="acoes no-print">
+    <a class="botao botao-secundario" href="{% url 'ocorrencia_detalhe' ocorrencia.pk %}?print=1">Imprimir ficha</a>
+    {% if pode_editar %}
+    <a class="botao" href="{% url 'ocorrencia_editar' ocorrencia.pk %}">Editar</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</header>
+
+{% if ocorrencia.complementos.all %}
+{% if ficha_relatorio %}
+<p class="faixa-complemento">
+  <strong>
+    {% with n=ocorrencia.complementos.all|length %}
+    {{ n }} complemento{{ n|pluralize }} lançado{{ n|pluralize }}
+    {% endwith %}
+  </strong>
+  Há informações depois do registro original. O lançamento não foi alterado.
+</p>
+{% else %}
+<a class="faixa-complemento" href="#complementos">
+  <strong>
+    {% with n=ocorrencia.complementos.all|length %}
+    {{ n }} complemento{{ n|pluralize }} lançado{{ n|pluralize }}
+    {% endwith %}
+  </strong>
+  Há informações depois do registro original. O lançamento não foi alterado.
+</a>
+{% endif %}
+{% endif %}
+
+<table class="ficha-grid">
+  <tr>
+    <th>Autor</th><td>{{ ocorrencia.criado_por.nome_curto }}</td>
+    <th>Equipe</th><td>{{ ocorrencia.equipe.nome }}</td>
+  </tr>
+  <tr>
+    <th>Peso</th><td>{{ ocorrencia.peso|peso_br }}</td>
+    <th>Valor</th><td>{{ ocorrencia.valor|moeda }}</td>
+  </tr>
+  <tr>
+    <th>Devolução</th><td>{{ ocorrencia.get_tipo_devolucao_display }}</td>
+    <th>Placa</th><td>{% if ocorrencia.placa %}{{ ocorrencia.placa }}{% else %}—{% endif %}</td>
+  </tr>
+  <tr>
+    <th>Setor</th><td>{{ ocorrencia.get_setor_display }}</td>
+    <th>Motivo</th><td>{{ ocorrencia.motivo.nome }}</td>
+  </tr>
+  <tr>
+    <th>Lançada</th><td>{{ ocorrencia.data_hora|date:"d/m/Y H:i" }}</td>
+    <th>Última movimentação</th><td>{{ ocorrencia.atualizado_em|date:"d/m/Y H:i" }}</td>
+  </tr>
+</table>
+
+<h2>Ocorrência</h2>
+<div class="descricao rico">{{ ocorrencia.descricao|rico }}</div>
+
+{% if not ficha_relatorio and ocorrencia.anexos.all %}
+<section class="anexos-consulta no-print">
+  <h2>Fotos e anexos</h2>
+  <ul class="anexos-galeria">
+    {% for anexo in ocorrencia.anexos.all %}
+    <li>
+      <a href="{% url 'anexo_arquivo' anexo.pk %}">
+        {% if anexo.eh_imagem %}
+        <img src="{% url 'anexo_arquivo' anexo.pk %}" alt="{{ anexo.nome }}">
+        {% endif %}
+        <span>{{ anexo.nome }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<h2>Produtos devolvidos</h2>
+<table class="tabela tabela-compacta">
+  <thead>
+    <tr><th>Código</th><th>Produto</th><th>Quantidade</th></tr>
+  </thead>
+  <tbody>
+    {% for produto in ocorrencia.produtos.all %}
+    <tr>
+      <td>{{ produto.codigo|default:"—" }}</td>
+      <td>{{ produto.descricao }}</td>
+      <td>{{ produto.quantidade|qtd_br }} {{ produto.unidade }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3" class="vazio">Nenhum produto registrado.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<section class="bloco-complementos{% if ocorrencia.complementos.all %} bloco-complementos-ativo{% endif %}" id="complementos">
+  <h2>Complementos</h2>
+  {% if ocorrencia.complementos.all %}
+  <ol class="linha-tempo">
+    {% for item in ocorrencia.complementos.all %}
+    <li>
+      <p class="linha-tempo-meta">
+        {{ item.autor.nome_curto }} · {{ item.criado_em|date:"d/m/Y H:i" }}
+        {% if item.reabriu %}<span class="selo">Reabriu</span>{% endif %}
+      </p>
+      <p class="linha-tempo-texto">{{ item.texto|linebreaksbr }}</p>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="dica">Nenhum complemento ainda. O texto de origem permanece acima.</p>
+  {% endif %}
+</section>
+
+<p class="ficha-rodape so-print">Emitido em {% now "d/m/Y H:i" %} · Sistema de ocorrências</p>

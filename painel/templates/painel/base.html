@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Ocorrências{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,640&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'painel/app.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}app{% endblock %}">
+  {% block body %}
+  <aside class="rail">
+    <a class="marca" href="{% url 'painel' %}?de={{ filtro_de }}&ate={{ filtro_ate }}">
+      <span class="marca-selo">OC</span>
+      <span>
+        <small>Logística</small>
+        Ocorrências
+      </span>
+    </a>
+    <nav class="menu">
+      <a href="{% url 'painel' %}?de={{ filtro_de }}&ate={{ filtro_ate }}" {% if request.resolver_match.url_name == "painel" %}class="ativo"{% endif %}>Painel</a>
+      <a href="{% url 'relatorios' %}?de={{ filtro_de }}&ate={{ filtro_ate }}" {% if "relatorio" in request.resolver_match.url_name %}class="ativo"{% endif %}>Relatórios</a>
+      {% if pode_auditar %}
+      <a href="{% url 'auditoria' %}" {% if request.resolver_match.url_name == "auditoria" %}class="ativo"{% endif %}>Auditoria</a>
+      {% endif %}
+      {% if user.is_staff %}
+      <a href="{% url 'admin:index' %}">Administração</a>
+      {% endif %}
+    </nav>
+    <div class="rail-usuario">
+      <strong>{{ user.nome_curto }}</strong>
+      <span>
+        {% if user.acesso_total %}Acesso total
+        {% elif vinculos_nav %}
+          {% for vinculo in vinculos_nav %}{{ vinculo.equipe.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        {% else %}Sem equipe{% endif %}
+      </span>
+      <a href="{% url 'sair' %}">Sair</a>
+    </div>
+  </aside>
+  <div class="workspace">
+    {% if messages %}
+    <div class="avisos">
+      {% for message in messages %}
+      <p class="aviso aviso-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

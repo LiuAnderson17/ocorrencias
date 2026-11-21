@@ -1,0 +1,12 @@
+{% load painel_extras %}
+{% if pagina %}
+<nav class="paginas no-print" aria-label="Paginação">
+  {% if pagina.has_previous %}
+  <a href="?{% querystring page=pagina.previous_page_number de=filtro_de ate=filtro_ate %}">Anterior</a>
+  {% endif %}
+  <span>{{ pagina.start_index }}–{{ pagina.end_index }} de {{ pagina.paginator.count }} · página {{ pagina.number }}/{{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}
+  <a href="?{% querystring page=pagina.next_page_number de=filtro_de ate=filtro_ate %}">Próxima</a>
+  {% endif %}
+</nav>
+{% endif %}

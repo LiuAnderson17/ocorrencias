@@ -1,0 +1,39 @@
+{% load static painel_extras %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relatório · NF {{ ocorrencia.numero_nota|nota_br }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,640&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'painel/app.css' %}">
+</head>
+<body class="pagina-relatorio-ficha">
+  <article class="folha ficha">
+    {% include "painel/includes/ficha_corpo.html" with ficha_relatorio=True %}
+  </article>
+  <script>
+  (function () {
+    function fecharSePopup() {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+      }
+    }
+    function imprimirFicha() {
+      window.focus();
+      window.print();
+    }
+    if (document.readyState === "complete") {
+      window.setTimeout(imprimirFicha, 80);
+    } else {
+      window.addEventListener("load", function () {
+        window.setTimeout(imprimirFicha, 80);
+      });
+    }
+    window.addEventListener("afterprint", fecharSePopup);
+  })();
+  </script>
+</body>
+</html>

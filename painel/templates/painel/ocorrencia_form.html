@@ -1,0 +1,130 @@
+{% extends "painel/base.html" %}
+{% load static painel_extras %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'painel/vendor/quill.snow.css' %}">
+{% endblock %}
+{% block title %}{% if editando %}Editar{% else %}Nova{% endif %} ocorrência{% endblock %}
+{% block content %}
+<header class="topo">
+  <div>
+    <p class="olho">{% if editando %}Edição{% else %}Lançamento{% endif %}</p>
+    <h1>{% if editando %}Sua ocorrência{% else %}Nova ocorrência{% endif %}</h1>
+  </div>
+</header>
+
+<form class="folha" method="post" enctype="multipart/form-data" novalidate data-ocorrencia-form data-notas-url="{% url 'api-nota' '0' %}" data-xml-url="{% url 'api-nota-xml' %}" data-abertas-url="{% url 'api-nota-abertas' '0' %}"{% if editando %} data-ocorrencia-id="{{ ocorrencia.pk }}"{% endif %}>
+  {% csrf_token %}
+  {{ form.produtos_json }}
+  {% if form.errors %}
+  <div class="erro-bloco" id="erros-form">
+    <p>Não foi possível salvar. Confira o que falta:</p>
+    <ul>
+      {% for campo in form %}
+        {% for erro in campo.errors %}
+        <li>{% if campo.name != "produtos_json" %}{{ campo.label }}: {% endif %}{{ erro }}</li>
+        {% endfor %}
+      {% endfor %}
+      {% for erro in form.non_field_errors %}
+      <li>{{ erro }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="grade-form">
+    <section>
+      <h2>Nota e carga</h2>
+      {% if form.equipe %}
+        {% include "painel/includes/campo.html" with campo=form.equipe %}
+      {% else %}
+        <p class="dica">Esta ocorrência entra na sua equipe e fica visível para quem participa dela.</p>
+      {% endif %}
+      <div class="nota-linha">
+        <label class="campo-nota">
+          <span>{{ form.numero_nota.label }}</span>
+          {{ form.numero_nota }}
+          {% if form.numero_nota.errors %}<small class="erro">{{ form.numero_nota.errors|striptags }}</small>{% endif %}
+        </label>
+        <label class="importar-xml">
+          <span>XML da NF-e</span>
+          <input id="xml-nota" type="file" accept=".xml,text/xml,application/xml">
+        </label>
+      </div>
+      <p class="dica" id="nota-aviso">Informe o número da nota. Se ela estiver no cadastro ou no banco da empresa, o sistema preenche os dados. O XML é opcional.</p>
+      <p class="aviso-duplicata" id="nota-duplicada" hidden></p>
+      {% include "painel/includes/campo.html" with campo=form.cliente %}
+      <div class="duas">
+        {% include "painel/includes/campo.html" with campo=form.peso %}
+        {% include "painel/includes/campo.html" with campo=form.valor %}
+      </div>
+      <div class="duas">
+        {% include "painel/includes/campo.html" with campo=form.placa %}
+        {% include "painel/includes/campo.html" with campo=form.tipo_devolucao %}
+      </div>
+      <div class="duas">
+        {% include "painel/includes/campo.html" with campo=form.setor %}
+        {% include "painel/includes/campo.html" with campo=form.motivo %}
+      </div>
+      <div class="field">
+        <span>Data e hora</span>
+        {% if editando %}
+        <p class="relogio">{{ ocorrencia.data_hora|date:"d/m/Y H:i" }}</p>
+        <small class="dica">Gravada no lançamento. Não muda na edição.</small>
+        {% else %}
+        <p class="relogio">Será gravada ao salvar · <strong data-agora></strong></p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section>
+      <h2>Produtos devolvidos</h2>
+      <div id="produtos-caixa" class="produtos-caixa">
+        <p class="dica">Os produtos aparecem ao informar o número da nota ou ao abrir uma ocorrência já lançada.</p>
+      </div>
+      {% if form.produtos_json.errors %}
+      <p class="erro">{{ form.produtos_json.errors|striptags }}</p>
+      {% endif %}
+      <button class="botao botao-secundario" id="adicionar-produto" type="button" hidden>Adicionar produto</button>
+    </section>
+  </div>
+
+  <div class="field editor-campo">
+    <span>{{ form.descricao.label }}</span>
+    <div id="editor-descricao"></div>
+    {{ form.descricao }}
+    {% if form.descricao.errors %}<small class="erro">{{ form.descricao.errors|striptags }}</small>{% endif %}
+  </div>
+
+  <section class="anexos-campo">
+    <h2>Fotos e anexos</h2>
+    <p class="dica">Fotos da carga, da embalagem ou um PDF. Até 10 arquivos, 8 MB cada.</p>
+    {% if editando and ocorrencia.anexos.all %}
+    <ul class="anexos-lista">
+      {% for anexo in ocorrencia.anexos.all %}
+      <li>
+        {% if anexo.eh_imagem %}
+        <img src="{% url 'anexo_arquivo' anexo.pk %}" alt="{{ anexo.nome }}">
+        {% endif %}
+        <a href="{% url 'anexo_arquivo' anexo.pk %}">{{ anexo.nome }}</a>
+        <label class="anexo-remover">
+          <input type="checkbox" name="remover_anexo" value="{{ anexo.pk }}">
+          Remover
+        </label>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <input class="input" type="file" name="anexos" accept="image/*,.pdf,application/pdf" multiple>
+  </section>
+
+  <div class="acoes">
+    <button class="botao" type="submit">Salvar ocorrência</button>
+    <a class="botao botao-fantasma" href="{% if editando %}{% url 'ocorrencia_detalhe' ocorrencia.pk %}{% else %}{% url 'painel' %}{% endif %}">Cancelar</a>
+  </div>
+</form>
+{{ produtos_iniciais|json_script:"produtos-iniciais" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'painel/vendor/quill.js' %}"></script>
+<script src="{% static 'painel/form.js' %}"></script>
+{% endblock %}

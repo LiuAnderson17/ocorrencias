@@ -1,0 +1,86 @@
+{% extends "painel/base.html" %}
+{% load painel_extras static %}
+{% block title %}Painel · Ocorrências{% endblock %}
+{% block content %}
+<header class="topo">
+  <div>
+    <p class="olho">Painel</p>
+    <h1>Ocorrências da sua equipe</h1>
+    <p class="lead">O recorte de datas usa a última movimentação. A data de origem permanece na ficha.</p>
+  </div>
+  <a class="botao" href="{% url 'ocorrencia_nova' %}">Nova ocorrência</a>
+</header>
+
+<section class="contadores">
+  <a href="?{% querystring status='' page='' de=filtro_de ate=filtro_ate %}">
+    <strong>{{ totais.todas }}</strong>
+    <span>Visíveis</span>
+  </a>
+  {% for item in totais.itens %}
+  <a href="?{% querystring status=item.id page='' de=filtro_de ate=filtro_ate %}">
+    <strong>{{ item.total }}</strong>
+    <span>{{ item.nome }}</span>
+  </a>
+  {% endfor %}
+</section>
+
+{% include "painel/includes/busca.html" with preservar_status=True %}
+
+<div class="tabela-wrap">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Nota</th>
+        <th>Cliente</th>
+        <th>Equipe</th>
+        <th>Quando</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th>Autor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in pagina %}
+      <tr>
+        <td><a class="nota" href="{% url 'ocorrencia_detalhe' item.pk %}">{{ item.numero_nota|nota_br }}</a></td>
+        <td>
+          {{ item.cliente }}
+          <small>{{ item.motivo.nome }} · {{ item.get_tipo_devolucao_display }} · {{ item.get_setor_display }}{% if item.complementos.all %} · <span class="selo-complemento">{{ item.complementos.all|length }} complemento{{ item.complementos.all|length|pluralize }}</span>{% endif %}</small>
+        </td>
+        <td>{{ item.equipe.nome }}</td>
+        <td>
+          {{ item.atualizado_em|date:"d/m/Y H:i" }}
+          {% if item.atualizado_em|date:"Y-m-d" != item.data_hora|date:"Y-m-d" %}
+          <small>Lançada {{ item.data_hora|date:"d/m/Y" }}</small>
+          {% endif %}
+        </td>
+        <td>{{ item.valor|moeda }}</td>
+        <td>
+          <select
+            class="status-select"
+            style="--status-cor: {{ item.status.cor_destaque }};"
+            data-status-url="{% url 'ocorrencia_status' item.pk %}"
+            data-atual="{{ item.status_id }}"
+            aria-label="Status da ocorrência {{ item.numero_nota }}"
+          >
+            {% for status in status_choices %}
+            <option value="{{ status.id }}" data-cor="{{ status.cor_destaque }}" {% if item.status_id == status.id %}selected{% endif %}>{{ status.nome }}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td>{{ item.criado_por.nome_curto }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="vazio">Nenhuma ocorrência nesta visão.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include "painel/includes/paginas.html" %}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'painel/painel.js' %}"></script>
+{% endblock %}
